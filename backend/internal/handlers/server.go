@@ -132,7 +132,7 @@ func ServersHandler(clientset *kubernetes.Clientset, namespace string) http.Hand
 				return
 			}
 
-			if err := utils.CreateIngressRouteTCP(dynamicClient, namespace, name, "megaminecraft.duckdns.org"); err != nil {
+			if err := utils.CreateIngressRouteTCP(dynamicClient, namespace, name, "mei-cc.duckdns.org"); err != nil {
 				// Cleanup all created resources (PVC, Deployment, Service)
 				_ = clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
 				_ = clientset.CoreV1().PersistentVolumeClaims(namespace).Delete(context.TODO(), pvcName, metav1.DeleteOptions{})

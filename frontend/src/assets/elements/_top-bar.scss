@@ -1,0 +1,14 @@
+
+@use '../base/variables' as *;
+
+.top-bar {
+    height: $top-bar-height;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px 0;
+    background-color: #B6B6B6;
+    text-align: center;
+    color: #FFFFFF;
+}

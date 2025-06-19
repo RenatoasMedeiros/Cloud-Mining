@@ -1,0 +1,14 @@
+.home-screen {
+    color: black;
+    position: relative;
+    width: 100dvw;
+    height: 100dvh;
+    display: grid;
+    overflow: hidden;
+
+    &__content {
+        width: 100%;
+        height: 100%;
+    }
+}
+

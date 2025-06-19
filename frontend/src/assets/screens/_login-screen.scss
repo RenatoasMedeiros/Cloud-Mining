@@ -1,0 +1,29 @@
+@use '../base/variables' as *;
+
+.login-screen {
+    color: black;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+
+    &__content {
+        width: 60%;
+        display: grid;
+        gap: 16px;
+
+        &__group {
+            display: grid;
+        }
+    }
+
+    h1 {
+        text-align: center;
+        width: 100%;
+    }
+}
+
+

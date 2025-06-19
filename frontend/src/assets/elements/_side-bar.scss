@@ -1,0 +1,19 @@
+
+@use "../base/variables" as *;
+@use "../base/functions" as *;
+
+.side-bar {
+    color: theme-var(color-text);
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    width: $side-bar-width;
+    background: theme-var(color-bg);
+    border-right: 1px solid #B6B6B6;
+
+    svg {
+        fill: theme-var(color-text);
+    }
+}

@@ -27,7 +27,7 @@ type Props = OwnProps & ReturnType<typeof mapStateToProps> & ReturnType<typeof m
 export class ServersController extends Component<Props> {
     createServer  = async (request: ServerCreateRequest): Promise<Server | null> => {
         try {
-            const { data } = await axios.post<Server | null>(createServerURL(), request);
+            const { data } = await axios.post<Server | null>(createServerURL(), { ...request });
 
             return data;
         } catch {
@@ -37,30 +37,43 @@ export class ServersController extends Component<Props> {
 
     getAll  = async (): Promise<Server[]> => {
         try {
-            const { data } = await axios.get<Server[]>(serversURL());
+            const { data } = await axios.get<{ servers: Server[] | null }>(serversURL());
 
-            return data;
+            console.log("data = ", data);
+            
+
+            if (!data || !data.servers) {
+                return Array.from({ length: 15 }, (_, i) => ({
+                    port: `${1000 + i}`,
+                    version: getRandomName(),
+                    name: getRandomName(),
+                    status: getRandomStatus()
+                }));
+            }
+
+            return data.servers;
         } catch {
             return Array.from({ length: 15 }, (_, i) => ({
-                id: `${1000 + i}`,
+                port: `${1000 + i}`,
+                version: getRandomName(),
                 name: getRandomName(),
                 status: getRandomStatus()
             }));
         }
     }
 
-    getServer  = async (serverId: string): Promise<Server | null> => {
+    getServer  = async (serverName: string): Promise<Server | null> => {
         try {
-            const { data } = await axios.get<Server>(serverURL(serverId));
+            const { data } = await axios.get<Server>(serverURL(serverName));
 
             return data;
         } catch {
             return {
-                id: '0001',
+                port: '0001',
                 name: 'rodrigo-minecloud.me',
                 status: ServerStatus.ONLINE,
+                version: 'asd'
             };
-            // return null;
         }
     }
 

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-mining-frontend-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: cloud-mining-frontend
+  ports:
+  - protocol: TCP
+    port: 80 # Expose the service on port 80
+    targetPort: 80 # Forward traffic to container port 80

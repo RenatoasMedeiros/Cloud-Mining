@@ -1,6 +1,6 @@
 enum AppRoute {
     INDEX = '/',
-    SERVER = '/server/:id',
+    SERVER = '/server/:name',
     REGISTER = '/register',
     LOGIN = '/login',
 }

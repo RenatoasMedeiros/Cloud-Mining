@@ -12,14 +12,14 @@ import { Tooltip } from '@mui/material';
 const ServerScreenComponent: FunctionComponent<ServersContext> = (props) => {
     const { getServer } = props;
 
-    const { id } = useParams();
+    const { name } = useParams();
     const navigate = useNavigate();
 
     const [server, setServer] = useState<Server | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [toolTipText, setToolTipText] = useState<string>('Copy');
 
-    if (!id) {
+    if (!name) {
         toast.error("Server not found");
         navigate(AppRoute.INDEX);
         return;
@@ -32,7 +32,7 @@ const ServerScreenComponent: FunctionComponent<ServersContext> = (props) => {
     const fetchServer = async () => {
         setLoading(true);
 
-        const serverResult = await getServer(id);
+        const serverResult = await getServer(name);
 
         setLoading(false);
 
@@ -78,7 +78,12 @@ const ServerScreenComponent: FunctionComponent<ServersContext> = (props) => {
                             {renderServerStatus(server.status)}
                         </div>
                         <div className='server-screen__content__details'>
-                            <p>adicionar mais confs</p>
+                            <p>Version:</p>
+                            <span>{server.version}</span>
+                        </div>
+                        <div className='server-screen__content__details'>
+                            <p>Port:</p>
+                            <span>{server.port}</span>
                         </div>
                     </div>
                 </>

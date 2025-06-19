@@ -1,0 +1,15 @@
+# cloud-mining-backend-role.yaml
+# Grants access to manage Deployments and Services in the default namespace
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cloud-mining-backend-role
+  namespace: default
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["create", "get", "list", "delete"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["create", "get", "list", "delete"]

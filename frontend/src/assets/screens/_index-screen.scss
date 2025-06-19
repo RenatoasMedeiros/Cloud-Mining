@@ -1,4 +1,15 @@
-@use '../base/variables' as *;
+@use "../base/variables" as *;
+@use "../base/functions" as *;
+
+button.MuiButton-contained {
+    transition: all 0.2s ease-in-out;
+    &:hover {
+        transform: scale(1.02);
+    }
+    &:active {
+        transform: scale(0.97);
+    }
+}
 
 .index-screen {
     position: relative;
@@ -32,15 +43,11 @@
     }
 
     &__no-servers {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
+        gap: 12px;
+        text-align: center;
 
         p {
-            font-weight: 600;
-            font-size: 24px;
+            font-size: 20px;
             color: $color-dark-gray;
         }
     }
@@ -92,11 +99,11 @@
                 height: 20px;
                 border-radius: 999px;
 
-                &--OFFLINE {
+                &--offline {
                     background-color: red;
                 }
 
-                &--ONLINE {
+                &--online {
                     background-color: green;
                 }
             }
@@ -106,24 +113,50 @@
 
 .dialog.MuiModal-root {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 9999;
 
     .create-server {
+        background: white;
         border-radius: 20px;
+        padding: 32px 24px;
+        width: 100%;
+        max-width: 480px;
         display: flex;
         flex-direction: column;
         gap: 24px;
-        padding: 24px 48px;
-        background-color: white;
-        outline: none!important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 
-        &__title {
-            font-size: large;
+        &__header {
+            text-align: center;
+
+            h2 {
+                font-size: 22px;
+                font-weight: 700;
+                color: $color-dark-gray;
+                margin: 0;
+            }
+        }
+
+        &__form {
+            border-radius: 8px;
+            background-color: theme-var(color-text);
+            padding: 20px;
             display: flex;
-            color: black;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        button.MuiButton-contained {
+            padding: 12px;
+            font-weight: bold;
+            font-size: 16px;
         }
     }
+}
 
+.dialog.MuiModal-root {
+    backdrop-filter: blur(4px);
 }

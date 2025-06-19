@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-mining-frontend-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-mining-frontend
+  template:
+    metadata:
+      labels:
+        app: cloud-mining-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: rodrigomoraisipl/cloud-mining-frontend:latest
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 80
+        env:
+          - name: VITE_API_URL
+            value: "http://api-192-168-1-130.sslip.io/"
+          - name: VITE_WS_URL
+            value: "http://api-192-168-1-130.sslip.io/"

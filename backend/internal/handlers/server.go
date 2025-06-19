@@ -6,12 +6,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -114,6 +116,28 @@ func ServersHandler(clientset *kubernetes.Clientset, namespace string) http.Hand
 				_ = clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
 				_ = clientset.CoreV1().PersistentVolumeClaims(namespace).Delete(context.TODO(), pvcName, metav1.DeleteOptions{})
 				http.Error(w, fmt.Sprintf("service error: %v", err), http.StatusInternalServerError)
+				return
+			}
+
+			clientset, config, err := utils.GetKubeClient()
+			if err != nil {
+				log.Fatalf("Kubernetes setup failed: %v", err)
+			}
+
+			// 3.5 Create Traefik IngressRouteTCP
+			dynamicClient, err := dynamic.NewForConfig(config) // get rest.Config similarly as you do for kubernetes.Clientset
+			if err != nil {
+				// Cleanup everything else if needed
+				http.Error(w, fmt.Sprintf("failed to create dynamic client: %v", err), http.StatusInternalServerError)
+				return
+			}
+
+			if err := utils.CreateIngressRouteTCP(dynamicClient, namespace, name, "megaminecraft.duckdns.org"); err != nil {
+				// Cleanup all created resources (PVC, Deployment, Service)
+				_ = clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
+				_ = clientset.CoreV1().PersistentVolumeClaims(namespace).Delete(context.TODO(), pvcName, metav1.DeleteOptions{})
+				_ = clientset.CoreV1().Services(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
+				http.Error(w, fmt.Sprintf("ingress route error: %v", err), http.StatusInternalServerError)
 				return
 			}
 

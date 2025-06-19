@@ -3,6 +3,7 @@ package utils
 import (
 	"cloud-mining-backend/internal/models"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -11,7 +12,10 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -112,11 +116,10 @@ func CreateService(clientset *kubernetes.Clientset, namespace, name string) (int
 }
 
 // getKubeClient correctly sets up the Kubernetes client for local or in-cluster execution.
-func GetKubeClient() (*kubernetes.Clientset, error) {
+func GetKubeClient() (*kubernetes.Clientset, *rest.Config, error) {
 	var config *rest.Config
 	var err error
 
-	// Check if running in a "local" environment
 	if os.Getenv("ENV") == "local" {
 		kubeconfig := os.Getenv("KUBECONFIG")
 		if kubeconfig == "" {
@@ -126,20 +129,67 @@ func GetKubeClient() (*kubernetes.Clientset, error) {
 		log.Println("Using local kubeconfig:", kubeconfig)
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if err != nil {
-			return nil, fmt.Errorf("failed to load local kubeconfig: %w", err)
+			return nil, nil, fmt.Errorf("failed to load local kubeconfig: %w", err)
 		}
 	} else {
-		// Assume running inside the Kubernetes cluster
 		log.Println("Using in-cluster Kubernetes config")
 		config, err = rest.InClusterConfig()
 		if err != nil {
-			return nil, fmt.Errorf("failed to create in-cluster config: %w", err)
+			return nil, nil, fmt.Errorf("failed to create in-cluster config: %w", err)
 		}
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
+		return nil, nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
-	return clientset, nil
+	return clientset, config, nil
+}
+
+func CreateIngressRouteTCP(dynamicClient dynamic.Interface, namespace, name, domain string) error {
+	ingressRoute := map[string]interface{}{
+		"apiVersion": "traefik.containo.us/v1alpha1",
+		"kind":       "IngressRouteTCP",
+		"metadata": map[string]interface{}{
+			"name":      name,
+			"namespace": namespace,
+			"labels": map[string]string{
+				"app":    "minecraft",
+				"server": name,
+			},
+		},
+		"spec": map[string]interface{}{
+			"entryPoints": []string{"minecraft-tcp"},
+			"routes": []map[string]interface{}{
+				{
+					"match": fmt.Sprintf("HostSNI(`%s.%s`)", name, domain),
+					"services": []map[string]interface{}{
+						{
+							"name": name,
+							"port": 25565, // this port maybe I need to change to the node port
+						},
+					},
+				},
+			},
+		},
+	}
+
+	gvr := schema.GroupVersionResource{
+		Group:    "traefik.containo.us",
+		Version:  "v1alpha1",
+		Resource: "ingressroutetcps",
+	}
+
+	data, err := json.Marshal(ingressRoute)
+	if err != nil {
+		return err
+	}
+
+	unstructuredObj := &unstructured.Unstructured{}
+	if err := unstructuredObj.UnmarshalJSON(data); err != nil {
+		return err
+	}
+
+	_, err = dynamicClient.Resource(gvr).Namespace(namespace).Create(context.TODO(), unstructuredObj, metav1.CreateOptions{})
+	return err
 }

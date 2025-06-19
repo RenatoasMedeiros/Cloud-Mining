@@ -21,6 +21,6 @@ spec:
           - containerPort: 80
         env:
           - name: VITE_API_URL
-            value: "http://<api-ip>.sslip.io"
+            value: "http://api-192-168-1-19.sslip.io"
           - name: VITE_WS_URL
-            value: "http://<api-ip>.sslip.io"
+            value: "http://api-192-168-1-19.sslip.io"

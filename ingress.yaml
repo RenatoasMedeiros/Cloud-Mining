@@ -4,7 +4,7 @@ metadata:
   name: cloud-mining
 spec:
   rules:
-    - host: front-<ip>.sslip.io
+    - host: front-192-168-1-19.sslip.io
       http:
         paths:
           - path: /
@@ -14,7 +14,7 @@ spec:
                 name: cloud-mining-frontend-service
                 port:
                   number: 80
-    - host: api-<ip>.sslip.io
+    - host: api-192-168-1-19.sslip.io
       http:
         paths:
           - path: /

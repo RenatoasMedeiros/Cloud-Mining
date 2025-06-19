@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloud-mining
+spec:
+  rules:
+    - host: front-192.168.1.177.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cloud-mining-frontend-service
+                port:
+                  number: 80

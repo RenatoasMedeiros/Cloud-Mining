@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-mining-frontend-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-mining-frontend
+  template:
+    metadata:
+      labels:
+        app: cloud-mining-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: rodrigomoraisipl/cloud-mining-frontend
+        ports:
+        - containerPort: 80

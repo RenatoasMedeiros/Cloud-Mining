@@ -18,6 +18,7 @@ spec:
       serviceAccountName: cloud-mining-backend-sa
       containers:
         - name: manager
-          image: luisadaoipl/cloud-mining-backend
+          image: luisadaoipl/cloud-mining-backend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000

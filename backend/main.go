@@ -26,7 +26,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
-	clientset, err := utils.GetKubeClient()
+	clientset, _, err := utils.GetKubeClient()
 	if err != nil {
 		log.Fatalf("Kubernetes setup failed: %v", err)
 	}

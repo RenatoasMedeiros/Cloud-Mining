@@ -52,6 +52,7 @@ func CreateDeployment(clientset *kubernetes.Clientset, namespace, name string, c
 							{Name: "TYPE", Value: "PAPER"}, // Default server type
 							{Name: "VERSION", Value: cfg.Version},
 							{Name: "MEMORY", Value: cfg.Memory},
+    						{Name: "ONLINE_MODE", Value: "FALSE"}, // Allow cracked clients
 						},
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 25565,

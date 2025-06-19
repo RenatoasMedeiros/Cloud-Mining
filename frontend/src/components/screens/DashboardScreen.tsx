@@ -3,7 +3,7 @@ import { ServersContext } from '../../controllers/ServersContext';
 import { withServersContext } from '../../containers/withServersContext';
 import { Server, ServerCreateRequest, ServerStatus } from '../../types/server';
 import { Loader } from '../elements/Loader';
-import { Button, Modal, TextField } from '@mui/material';
+import { Button, FormControl, InputLabel, MenuItem, Modal, Select, SelectChangeEvent, TextField } from '@mui/material';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../../controllers/AuthContext';
 import { withAuthContext } from '../../containers/withAuthContext';
@@ -13,6 +13,34 @@ import { buildRoute } from '../../utils/route';
 
 type Props = ServersContext & AuthContext;
 
+const MineCraftVersions = [
+    '1.19',
+    '1.19.1',
+    '1.19.2',
+    '1.19.3',
+    '1.19.4',
+    '1.20',
+    '1.20.1',
+    '1.20.2',
+    '1.20.3',
+    '1.20.4',
+    '1.20.5',
+    '1.21',
+    '1.21.1',
+    '1.21.2',
+    '1.21.3',
+    '1.21.4',
+    '1.21.5',
+    '1.21.6',
+]
+
+const MemoryOptions = [
+    '1G',
+    '2G',
+    '3G',
+    '4G',
+];
+
 const DashboardScreenComponent: FunctionComponent<Props> = (props: Props) => {
     const { getAll, user, createServer } = props;
 
@@ -21,7 +49,11 @@ const DashboardScreenComponent: FunctionComponent<Props> = (props: Props) => {
     const [servers, setServers] = useState<Server[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [modalShow, setModalShow] = useState<boolean>(false);
-    const [newServer, setNewServer] = useState<ServerCreateRequest>({ name: '' });
+    const [newServer, setNewServer] = useState<ServerCreateRequest>({
+        memory: MemoryOptions[0],
+        username: '',
+        version: MineCraftVersions[0],
+    });
 
     useEffect(() => {
         fetchServers();
@@ -39,16 +71,24 @@ const DashboardScreenComponent: FunctionComponent<Props> = (props: Props) => {
     );
 
     const onNewServerNameChange = ({ currentTarget: { value } }: ChangeEvent<HTMLInputElement>) => {
-        setNewServer({ name: value });
+        setNewServer((prev) => ({ ...prev, username: value }));
     };
+
+    const mineCraftVersionChange = ({ target: { value } }: SelectChangeEvent) => {
+        setNewServer((prev) => ({ ...prev, version: value }));
+    }
+
+    const mineCraftMemoryChange = ({ target: { value } }: SelectChangeEvent) => {
+        setNewServer((prev) => ({ ...prev, memory: value }));
+    }
 
     const renderServer = (server: Server) => {
         return (
-            <Link to={buildRoute(AppRoute.SERVER, { id: server.id })} key={server.id} className="index-screen__servers__server">
+            <Link to={buildRoute(AppRoute.SERVER, { name: server.name })} key={`${server.name}-${server.port}`} className="index-screen__servers__server">
                 <>
                     <div className="index-screen__servers__server__details">
                         <strong>Server: {server.name}</strong>
-                        <p>{server.id}</p>
+                        <p>Version {server.version}</p>
                     </div>
                     {renderServerStatus(server.status)}
                 </>
@@ -75,7 +115,7 @@ const DashboardScreenComponent: FunctionComponent<Props> = (props: Props) => {
             return;
         }
 
-        navigate(buildRoute(AppRoute.SERVER, { id: serverCreated.id }));
+        navigate(buildRoute(AppRoute.SERVER, { name: serverCreated.name }));
     };
 
     const newServerButton = () => {
@@ -117,18 +157,58 @@ const DashboardScreenComponent: FunctionComponent<Props> = (props: Props) => {
                 onClose={() => setModalShow(false)}
                 open={modalShow}
             >
-                <div className='create-server'>
-                    <div className='create-server__title'>
-                        Create a new server
-                    </div>
-                    <div>
-                        <TextField
-                            label="Server name"
-                            value={newServer.name}
-                            onChange={onNewServerNameChange}
-                        />
-                    </div>
-                    
+                <div className="create-server__form">
+                    <TextField
+                        fullWidth
+                        label="Server Name"
+                        value={newServer.username}
+                        onChange={onNewServerNameChange}
+                    />
+
+                    <FormControl fullWidth>
+                        <InputLabel>Version</InputLabel>
+                        <Select
+                            MenuProps={{
+                                disablePortal: true,
+                                PaperProps: {
+                                    style: {
+                                        maxHeight: 200, // sets scrollable height
+                                        zIndex: 1302,   // keeps it above modal
+                                    }
+                                }
+                            }}
+                            value={newServer.version}
+                            label="Version"
+                            onChange={mineCraftVersionChange}
+                        >
+                            {MineCraftVersions.map(value => (
+                                <MenuItem key={value} value={value}>{value}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth>
+                        <InputLabel>Memory</InputLabel>
+                        <Select
+                            MenuProps={{
+                                disablePortal: true,
+                                PaperProps: {
+                                    style: {
+                                        maxHeight: 200, // sets scrollable height
+                                        zIndex: 1302,   // keeps it above modal
+                                    }
+                                }
+                            }}
+                            value={newServer.memory}
+                            label="Memory"
+                            onChange={mineCraftMemoryChange}
+                        >
+                            {MemoryOptions.map(value => (
+                                <MenuItem key={value} value={value}>{value}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
                     <Button
                         variant='contained'
                         onClick={onSeverServerClick}

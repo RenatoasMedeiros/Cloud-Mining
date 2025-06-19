@@ -1,0 +1,15 @@
+# cloud-mining-backend-rolebinding.yaml
+# Binds the Role to the ServiceAccount to give it permission to act
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cloud-mining-backend-binding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: cloud-mining-backend-sa
+roleRef:
+  kind: Role
+  name: cloud-mining-backend-role
+  apiGroup: rbac.authorization.k8s.io

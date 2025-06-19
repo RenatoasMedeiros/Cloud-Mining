@@ -1,16 +1,19 @@
 export enum ServerStatus {
-    ONLINE = 'ONLINE',
-    OFFLINE = 'OFFLINE',
+    ONLINE = 'online',
+    OFFLINE = 'offline',
 }
 
 export interface Server {
-    id: string;
     name: string;
+    version: string;
     status: ServerStatus;
+    port: string;
 }
 
 export type ServerCreateRequest = {
-    name: string;
+    username: string;
+    version: string;
+    memory: string;
 }
 
 

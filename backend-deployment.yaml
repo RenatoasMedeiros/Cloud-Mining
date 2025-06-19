@@ -1,0 +1,23 @@
+# cloud-mining-backend-deployment.yaml
+# Deploys the backend app container using the configured ServiceAccount
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-mining-backend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-mining-backend
+  template:
+    metadata:
+      labels:
+        app: cloud-mining-backend
+    spec:
+      serviceAccountName: cloud-mining-backend-sa
+      containers:
+        - name: manager
+          image: luisadaoipl/cloud-mining-backend
+          ports:
+            - containerPort: 3000

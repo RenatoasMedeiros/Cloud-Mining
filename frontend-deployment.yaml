@@ -17,4 +17,9 @@ spec:
       - name: frontend
         image: rodrigomoraisipl/cloud-mining-frontend
         ports:
-        - containerPort: 80
+          - containerPort: 80
+        env:
+          - name: VITE_API_URL
+            value: "http://api-192-168-1-130.sslip.io"
+          - name: VITE_WS_URL
+            value: "http://api-192-168-1-130.sslip.io"

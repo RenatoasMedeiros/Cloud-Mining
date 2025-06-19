@@ -132,7 +132,7 @@ func ServersHandler(clientset *kubernetes.Clientset, namespace string) http.Hand
 				return
 			}
 
-			if err := utils.CreateIngressRouteTCP(dynamicClient, namespace, name, "mei-cc.duckdns.org"); err != nil {
+			if err := utils.CreateIngressRouteTCP(dynamicClient, namespace, name, "mc-cc.duckdns.org"); err != nil {
 				// Cleanup all created resources (PVC, Deployment, Service)
 				_ = clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
 				_ = clientset.CoreV1().PersistentVolumeClaims(namespace).Delete(context.TODO(), pvcName, metav1.DeleteOptions{})
@@ -183,6 +183,14 @@ func ServerHandler(clientset *kubernetes.Clientset, namespace string) http.Handl
 			err = clientset.CoreV1().Services(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
 			if err != nil && !errors.IsNotFound(err) {
 				http.Error(w, fmt.Sprintf("failed to delete service: %v", err), http.StatusInternalServerError)
+				return
+			}
+
+			// Delete PersistentVolumeClaim
+			pvcName := "pvc-" + name
+			err = clientset.CoreV1().PersistentVolumeClaims(namespace).Delete(context.TODO(), pvcName, metav1.DeleteOptions{})
+			if err != nil && !errors.IsNotFound(err) {
+				http.Error(w, fmt.Sprintf("failed to delete pvc: %v", err), http.StatusInternalServerError)
 				return
 			}
 

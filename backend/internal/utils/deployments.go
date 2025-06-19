@@ -53,7 +53,7 @@ func CreateDeployment(clientset *kubernetes.Clientset, namespace, name string, c
 	return err
 }
 
-func CreateService(clientset *kubernetes.Clientset, namespace, name string) error {
+func CreateService(clientset *kubernetes.Clientset, namespace, name string) (int32, error) {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name, // Name the service the same as the deployment for easy association
@@ -68,8 +68,17 @@ func CreateService(clientset *kubernetes.Clientset, namespace, name string) erro
 			Type: corev1.ServiceTypeNodePort, // Expose the service outside the cluster (for Minikube)
 		},
 	}
-	_, err := clientset.CoreV1().Services(namespace).Create(context.TODO(), service, metav1.CreateOptions{})
-	return err
+	createdService, err := clientset.CoreV1().Services(namespace).Create(context.TODO(), service, metav1.CreateOptions{})
+	if err != nil {
+		return 0, err
+	}
+
+	// Kubernetes may assign a random NodePort if not specified; fetch the assigned port
+	if len(createdService.Spec.Ports) > 0 {
+		return createdService.Spec.Ports[0].NodePort, nil
+	}
+
+	return 0, fmt.Errorf("failed to retrieve NodePort for service %s", name)
 }
 
 // getKubeClient correctly sets up the Kubernetes client for local or in-cluster execution.

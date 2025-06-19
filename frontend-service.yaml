@@ -4,7 +4,7 @@ metadata:
   name: cloud-mining-frontend-service
   namespace: default
 spec:
-  type: LoadBalancer # K3s has a basic LoadBalancer
+  type: ClusterIP
   selector:
     app: cloud-mining-frontend
   ports:

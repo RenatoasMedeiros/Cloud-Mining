@@ -21,8 +21,11 @@ import (
 func CreateDeployment(clientset *kubernetes.Clientset, namespace, name string, cfg models.ServerConfig) error {
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   name,
-			Labels: map[string]string{"app": "minecraft", "owner": cfg.Username},
+			Name: name,
+			Labels: map[string]string{
+				"app":   "minecraft",
+				"owner": cfg.Username,
+			},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: pointer.Int32(1),
@@ -31,7 +34,10 @@ func CreateDeployment(clientset *kubernetes.Clientset, namespace, name string, c
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": "minecraft", "server": name},
+					Labels: map[string]string{
+						"app":    "minecraft",
+						"server": name,
+					},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
@@ -39,16 +45,32 @@ func CreateDeployment(clientset *kubernetes.Clientset, namespace, name string, c
 						Image: "itzg/minecraft-server",
 						Env: []corev1.EnvVar{
 							{Name: "EULA", Value: "TRUE"},
-							{Name: "TYPE", Value: "PAPER"}, // Example: Default to Paper for better performance
+							{Name: "TYPE", Value: "PAPER"}, // Default server type
 							{Name: "VERSION", Value: cfg.Version},
 							{Name: "MEMORY", Value: cfg.Memory},
 						},
-						Ports: []corev1.ContainerPort{{ContainerPort: 25565}},
+						Ports: []corev1.ContainerPort{{
+							ContainerPort: 25565,
+							Name:          "minecraft-port",
+						}},
+						VolumeMounts: []corev1.VolumeMount{{
+							Name:      "minecraft-world",
+							MountPath: "/data", // Where the world will be stored
+						}},
+					}},
+					Volumes: []corev1.Volume{{
+						Name: "minecraft-world",
+						VolumeSource: corev1.VolumeSource{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+								ClaimName: "pvc-" + name,
+							},
+						},
 					}},
 				},
 			},
 		},
 	}
+
 	_, err := clientset.AppsV1().Deployments(namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	return err
 }
@@ -56,25 +78,33 @@ func CreateDeployment(clientset *kubernetes.Clientset, namespace, name string, c
 func CreateService(clientset *kubernetes.Clientset, namespace, name string) (int32, error) {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name, // Name the service the same as the deployment for easy association
+			Name:      name,
+			Namespace: namespace, // Required!
+			Labels: map[string]string{
+				"app":    "minecraft",
+				"server": name,
+			},
 		},
 		Spec: corev1.ServiceSpec{
-			Selector: map[string]string{"server": name},
+			Selector: map[string]string{
+				"server": name,
+			},
 			Ports: []corev1.ServicePort{{
+				Name:       "minecraft",
 				Protocol:   corev1.ProtocolTCP,
-				Port:       25565,                 // The port the service listens on
-				TargetPort: intstr.FromInt(25565), // The container port to forward to
+				Port:       25565,
+				TargetPort: intstr.FromInt(25565),
 			}},
-			Type: corev1.ServiceTypeNodePort, // Expose the service outside the cluster (for Minikube)
+			Type: corev1.ServiceTypeNodePort,
 		},
 	}
+
 	createdService, err := clientset.CoreV1().Services(namespace).Create(context.TODO(), service, metav1.CreateOptions{})
 	if err != nil {
 		return 0, err
 	}
 
-	// Kubernetes may assign a random NodePort if not specified; fetch the assigned port
-	if len(createdService.Spec.Ports) > 0 {
+	if len(createdService.Spec.Ports) > 0 && createdService.Spec.Ports[0].NodePort > 0 {
 		return createdService.Spec.Ports[0].NodePort, nil
 	}
 

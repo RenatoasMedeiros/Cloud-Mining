@@ -78,6 +78,7 @@ func ServersHandler(clientset *kubernetes.Clientset, namespace string) http.Hand
 				http.Error(w, "invalid request body", http.StatusBadRequest)
 				return
 			}
+
 			// Basic validation
 			if cfg.Username == "" {
 				http.Error(w, "username field is required", http.StatusBadRequest)
@@ -86,32 +87,42 @@ func ServersHandler(clientset *kubernetes.Clientset, namespace string) http.Hand
 
 			// Sanitize username to be a valid DNS-1123 label
 			name := fmt.Sprintf("mc-%s", strings.ToLower(cfg.Username))
+			pvcName := "pvc-" + name
 
-			// Create the Deployment
+			// 1. Create the PVC
+			if err := utils.CreatePVC(clientset, namespace, pvcName, cfg); err != nil {
+				http.Error(w, fmt.Sprintf("pvc error: %v", err), http.StatusInternalServerError)
+				return
+			}
+
+			// 2. Create the Deployment
 			if err := utils.CreateDeployment(clientset, namespace, name, cfg); err != nil {
 				if errors.IsAlreadyExists(err) {
 					http.Error(w, fmt.Sprintf("server '%s' already exists", name), http.StatusConflict)
 				} else {
+					// Rollback PVC
+					_ = clientset.CoreV1().PersistentVolumeClaims(namespace).Delete(context.TODO(), pvcName, metav1.DeleteOptions{})
 					http.Error(w, fmt.Sprintf("deployment error: %v", err), http.StatusInternalServerError)
 				}
 				return
 			}
 
-			// Create the Service to expose the Deployment
+			// 3. Create the Service to expose the Deployment
 			nodePort, err := utils.CreateService(clientset, namespace, name)
 			if err != nil {
-				// Cleanup the deployment if service creation fails
+				// Cleanup Deployment and PVC
 				_ = clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
+				_ = clientset.CoreV1().PersistentVolumeClaims(namespace).Delete(context.TODO(), pvcName, metav1.DeleteOptions{})
 				http.Error(w, fmt.Sprintf("service error: %v", err), http.StatusInternalServerError)
 				return
 			}
 
-			// Now, build the ServerDTO to return
+			// 4. Build and return the response DTO
 			serverDTO := models.ServerDTO{
 				Name:    name,
-				Version: cfg.Version, // assuming ServerConfig has Version field
-				Memory:  cfg.Memory,  // assuming ServerConfig has Memory field
-				Status:  "online",    // since just created, assume online
+				Version: cfg.Version,
+				Memory:  cfg.Memory,
+				Status:  "online",
 				Port:    strconv.FormatInt(int64(nodePort), 10),
 			}
 

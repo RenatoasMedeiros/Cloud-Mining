@@ -1,6 +1,6 @@
 import { API_URL } from '../settings';
 
-const serversURL = () => `${API_URL}/servers-list`;
+const serversURL = () => `${API_URL}/servers`;
 
 const serverURL = (serverId: string) => `${API_URL}/servers/${serverId}`;
 

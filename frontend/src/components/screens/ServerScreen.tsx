@@ -13,6 +13,7 @@ const ServerScreenComponent: FunctionComponent<ServersContext> = (props) => {
     const { getServer } = props;
 
     const { name } = useParams();
+
     const navigate = useNavigate();
 
     const [server, setServer] = useState<Server | null>(null);

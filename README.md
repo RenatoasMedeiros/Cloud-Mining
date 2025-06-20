@@ -120,3 +120,14 @@ All roles are bound to `cloud-mining-backend-sa`.
 |-----------|------------------------------------------------------|
 | Frontend  | http://front-192-168-1-130.sslip.io                   |
 | Backend   | http://api-192-168-1-130.sslip.io                     |
+
+
+# 🔮 Future Work
+
+## Traefik IngressRouteTCP Integration
+
+#### Although Traefik is included in the configuration, the TCP routing is not currently functional. Players can still connect directly using IP:PORT, but the intended setup is to allow Minecraft server access through a custom domain like `mc-myserver.mc-cc.duckdns.org` .
+
+> Goal: Enable domain-based Minecraft server access via Traefik TCP routing.
+
+We found some issues regarding minecraft not sending the host of the server, so that still requires some more investigation.
